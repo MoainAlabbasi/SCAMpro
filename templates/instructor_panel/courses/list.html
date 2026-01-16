@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}مقرراتي - S-ACM{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-book me-2"></i>مقرراتي</h2>
+    <a href="{% url 'courses:file_upload' %}" class="btn btn-primary">
+        <i class="bi bi-upload me-1"></i>رفع ملف جديد
+    </a>
+</div>
+
+<div class="row g-4">
+    {% for course in courses %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card course-card h-100 hover-shadow">
+            <div class="card-body">
+                <span class="course-code">{{ course.course_code }}</span>
+                <h5 class="course-name">{{ course.course_name }}</h5>
+                <p class="course-meta">
+                    <i class="bi bi-layers me-1"></i>{{ course.level.level_name }}
+                </p>
+                {% if course.description %}
+                <p class="text-muted text-truncate-2 small">{{ course.description }}</p>
+                {% endif %}
+                
+                <!-- Stats -->
+                <div class="d-flex gap-3 mt-3">
+                    <div class="text-center">
+                        <div class="fw-bold text-primary">{{ course.files.count }}</div>
+                        <small class="text-muted">ملف</small>
+                    </div>
+                    <div class="text-center">
+                        <div class="fw-bold text-success">{{ course.total_downloads|default:0 }}</div>
+                        <small class="text-muted">تحميل</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer d-flex gap-2">
+                <a href="{% url 'courses:instructor_course_detail' course.pk %}" class="btn btn-primary btn-sm flex-fill">
+                    <i class="bi bi-folder-open me-1"></i>إدارة
+                </a>
+                <a href="{% url 'courses:file_upload' %}?course={{ course.pk }}" class="btn btn-success btn-sm">
+                    <i class="bi bi-upload"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <h4 class="mt-3 text-muted">لم يتم تعيين مقررات لك بعد</h4>
+                <p class="text-muted">تواصل مع مسؤول النظام لتعيين المقررات</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

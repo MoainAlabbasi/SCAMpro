@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}لوحة التحكم - S-ACM{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-speedometer2 me-2"></i>لوحة التحكم</h2>
+    <span class="badge bg-primary">مسؤول النظام</span>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card primary">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ total_users }}</div>
+                    <div class="stat-label">إجمالي المستخدمين</div>
+                </div>
+                <i class="bi bi-people stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card success">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ active_users }}</div>
+                    <div class="stat-label">المستخدمين النشطين</div>
+                </div>
+                <i class="bi bi-person-check stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card warning">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ total_students }}</div>
+                    <div class="stat-label">الطلاب</div>
+                </div>
+                <i class="bi bi-mortarboard stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3">
+        <div class="stat-card info">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ total_instructors }}</div>
+                    <div class="stat-label">المدرسين</div>
+                </div>
+                <i class="bi bi-person-workspace stat-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Quick Actions -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-lightning me-2"></i>إجراءات سريعة
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'accounts:admin_user_create' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-person-plus me-2"></i>إضافة مستخدم
+                    </a>
+                    <a href="{% url 'accounts:admin_user_import' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-upload me-2"></i>استيراد مستخدمين (CSV)
+                    </a>
+                    <a href="{% url 'courses:admin_course_create' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-book me-2"></i>إضافة مقرر
+                    </a>
+                    <a href="{% url 'accounts:admin_user_promote' %}" class="btn btn-outline-success">
+                        <i class="bi bi-arrow-up-circle me-2"></i>ترقية الطلاب
+                    </a>
+                    <a href="{% url 'notifications:admin_create' %}" class="btn btn-outline-info">
+                        <i class="bi bi-bell me-2"></i>إرسال إشعار عام
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Current Semester -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-calendar me-2"></i>الفصل الدراسي الحالي
+            </div>
+            <div class="card-body">
+                {% if current_semester %}
+                <div class="text-center py-3">
+                    <h4 class="mb-3">{{ current_semester.semester_name }}</h4>
+                    <p class="text-muted mb-1">
+                        <i class="bi bi-calendar-event me-1"></i>
+                        {{ current_semester.start_date|date:"Y/m/d" }} - {{ current_semester.end_date|date:"Y/m/d" }}
+                    </p>
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle me-1"></i>نشط
+                    </span>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-calendar-x display-4"></i>
+                    <p class="mt-2">لم يتم تحديد فصل دراسي حالي</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Info -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>معلومات النظام
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="d-flex justify-content-between py-2 border-bottom">
+                        <span>التخصصات النشطة</span>
+                        <strong>{{ total_majors }}</strong>
+                    </li>
+                    <li class="d-flex justify-content-between py-2 border-bottom">
+                        <span>إصدار النظام</span>
+                        <strong>1.0.0</strong>
+                    </li>
+                    <li class="d-flex justify-content-between py-2">
+                        <span>حالة النظام</span>
+                        <span class="badge bg-success">يعمل</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities -->
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-activity me-2"></i>آخر النشاطات</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>المستخدم</th>
+                        <th>النشاط</th>
+                        <th>التاريخ</th>
+                        <th>IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for activity in recent_activities %}
+                    <tr>
+                        <td>{{ activity.user.full_name|default:activity.user.academic_id }}</td>
+                        <td>{{ activity.get_activity_type_display }}</td>
+                        <td>{{ activity.created_at|date:"Y/m/d H:i" }}</td>
+                        <td><code>{{ activity.ip_address|default:"-" }}</code></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">لا توجد نشاطات حديثة</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

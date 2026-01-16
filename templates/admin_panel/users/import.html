@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}استيراد المستخدمين - S-ACM{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'accounts:admin_dashboard' %}">لوحة التحكم</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'accounts:admin_user_list' %}">المستخدمين</a></li>
+        <li class="breadcrumb-item active">استيراد CSV</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-upload me-2"></i>استيراد المستخدمين من ملف CSV
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-info-circle me-1"></i>تعليمات الاستيراد:</h6>
+                    <ul class="mb-0">
+                        <li>يجب أن يكون الملف بصيغة CSV</li>
+                        <li>الأعمدة المطلوبة: <code>academic_id, id_card_number, role</code></li>
+                        <li>الأعمدة الاختيارية: <code>first_name, last_name, major, level</code></li>
+                        <li>سيتم إنشاء جميع الحسابات بحالة "غير مفعّل"</li>
+                    </ul>
+                </div>
+                
+                <!-- Sample CSV -->
+                <div class="card bg-light mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-file-earmark-text me-1"></i>نموذج الملف
+                    </div>
+                    <div class="card-body">
+                        <pre class="mb-0"><code>academic_id,id_card_number,role,first_name,last_name,major,level
+441001234,1234567890,student,أحمد,محمد,علوم الحاسب,1
+441005678,0987654321,student,سارة,علي,نظم المعلومات,2
+EMP001,1122334455,instructor,خالد,العمري,,</code></pre>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'accounts:admin_user_import_template' %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-download me-1"></i>تحميل قالب CSV
+                        </a>
+                    </div>
+                </div>
+                
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="csv_file" class="form-label">ملف CSV</label>
+                        <input type="file" name="csv_file" id="csv_file" class="form-control" accept=".csv" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="skip_errors" id="skip_errors" class="form-check-input">
+                            <label class="form-check-label" for="skip_errors">
+                                تخطي الصفوف التي تحتوي على أخطاء والاستمرار
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="bi bi-upload me-1"></i>استيراد
+                        </button>
+                        <a href="{% url 'accounts:admin_user_list' %}" class="btn btn-outline-secondary">
+                            إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if import_results %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="bi bi-clipboard-check me-2"></i>نتائج الاستيراد
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h3 class="text-success">{{ import_results.success }}</h3>
+                        <p class="text-muted mb-0">نجح</p>
+                    </div>
+                    <div class="col-4">
+                        <h3 class="text-danger">{{ import_results.failed }}</h3>
+                        <p class="text-muted mb-0">فشل</p>
+                    </div>
+                    <div class="col-4">
+                        <h3 class="text-warning">{{ import_results.skipped }}</h3>
+                        <p class="text-muted mb-0">تم تخطيه</p>
+                    </div>
+                </div>
+                
+                {% if import_results.errors %}
+                <hr>
+                <h6 class="text-danger">الأخطاء:</h6>
+                <ul class="text-danger small">
+                    {% for error in import_results.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

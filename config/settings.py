@@ -59,6 +59,11 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # Custom context processors
+                'core.context_processors.site_settings',
+                'core.context_processors.user_notifications',
+                'core.context_processors.user_role_info',
+                'core.context_processors.current_semester',
             ],
         },
     },
@@ -67,15 +72,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
-# Using SQLite for development (easy setup), PostgreSQL for production
-if DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-else:
+# Using SQLite for development (easy setup and fast testing)
+# Switch to PostgreSQL for production by setting USE_POSTGRES=True in .env
+USE_POSTGRES = os.getenv('USE_POSTGRES', 'False').lower() == 'true'
+
+if USE_POSTGRES:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -84,6 +85,14 @@ else:
             'PASSWORD': os.getenv('DB_PASSWORD', ''),
             'HOST': os.getenv('DB_HOST', 'localhost'),
             'PORT': os.getenv('DB_PORT', '5432'),
+        }
+    }
+else:
+    # SQLite for development (default)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 

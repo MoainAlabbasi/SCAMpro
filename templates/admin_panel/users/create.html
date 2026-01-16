@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إضافة مستخدم - S-ACM{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'accounts:admin_dashboard' %}">لوحة التحكم</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'accounts:admin_user_list' %}">المستخدمين</a></li>
+        <li class="breadcrumb-item active">إضافة مستخدم</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-person-plus me-2"></i>إضافة مستخدم جديد
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-1"></i>
+                    سيتم إنشاء الحساب بحالة "غير مفعّل". سيقوم المستخدم بتفعيل حسابه بنفسه عبر صفحة التفعيل.
+                </div>
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_academic_id" class="form-label">الرقم الأكاديمي/الوظيفي *</label>
+                            {{ form.academic_id }}
+                            {% if form.academic_id.errors %}
+                            <div class="invalid-feedback d-block">{{ form.academic_id.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_id_card_number" class="form-label">رقم البطاقة الشخصية *</label>
+                            {{ form.id_card_number }}
+                            {% if form.id_card_number.errors %}
+                            <div class="invalid-feedback d-block">{{ form.id_card_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_first_name" class="form-label">الاسم الأول</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_last_name" class="form-label">الاسم الأخير</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_role" class="form-label">الدور *</label>
+                        {{ form.role }}
+                        {% if form.role.errors %}
+                        <div class="invalid-feedback d-block">{{ form.role.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row" id="student_fields">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_major" class="form-label">التخصص</label>
+                            {{ form.major }}
+                            {% if form.major.errors %}
+                            <div class="invalid-feedback d-block">{{ form.major.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_level" class="form-label">المستوى</label>
+                            {{ form.level }}
+                            {% if form.level.errors %}
+                            <div class="invalid-feedback d-block">{{ form.level.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="bi bi-person-plus me-1"></i>إضافة المستخدم
+                        </button>
+                        <a href="{% url 'accounts:admin_user_list' %}" class="btn btn-outline-secondary">
+                            إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.getElementById('id_role');
+    const studentFields = document.getElementById('student_fields');
+    
+    function toggleStudentFields() {
+        const selectedOption = roleSelect.options[roleSelect.selectedIndex];
+        const roleName = selectedOption.text.toLowerCase();
+        
+        if (roleName === 'student' || roleName === 'طالب') {
+            studentFields.style.display = 'flex';
+        } else {
+            studentFields.style.display = 'none';
+        }
+    }
+    
+    roleSelect.addEventListener('change', toggleStudentFields);
+    toggleStudentFields();
+});
+</script>
+{% endblock %}

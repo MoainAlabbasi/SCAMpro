@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إدارة المقررات - S-ACM{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-book me-2"></i>إدارة المقررات</h2>
+    <a href="{% url 'courses:admin_course_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>إضافة مقرر
+    </a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">البحث</label>
+                <input type="text" name="q" class="form-control" placeholder="اسم أو رمز المقرر" value="{{ request.GET.q }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">التخصص</label>
+                <select name="major" class="form-select">
+                    <option value="">الكل</option>
+                    {% for major in majors %}
+                    <option value="{{ major.pk }}" {% if request.GET.major == major.pk|stringformat:"s" %}selected{% endif %}>{{ major.major_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">المستوى</label>
+                <select name="level" class="form-select">
+                    <option value="">الكل</option>
+                    {% for level in levels %}
+                    <option value="{{ level.pk }}" {% if request.GET.level == level.pk|stringformat:"s" %}selected{% endif %}>{{ level.level_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">الحالة</label>
+                <select name="status" class="form-select">
+                    <option value="">الكل</option>
+                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>نشط</option>
+                    <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>غير نشط</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-search"></i>
+                </button>
+                <a href="{% url 'courses:admin_course_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Courses Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>رمز المقرر</th>
+                        <th>اسم المقرر</th>
+                        <th>المستوى</th>
+                        <th>التخصصات</th>
+                        <th>المدرسين</th>
+                        <th>الملفات</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in courses %}
+                    <tr>
+                        <td><code>{{ course.course_code }}</code></td>
+                        <td>{{ course.course_name }}</td>
+                        <td>{{ course.level.level_name }}</td>
+                        <td>
+                            {% for cm in course.course_majors.all %}
+                            <span class="badge bg-light text-dark">{{ cm.major.major_name }}</span>
+                            {% empty %}
+                            <span class="text-muted">-</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for ic in course.instructor_courses.all %}
+                            <span class="badge bg-info">{{ ic.instructor.full_name|default:ic.instructor.academic_id }}</span>
+                            {% empty %}
+                            <span class="text-muted">-</span>
+                            {% endfor %}
+                        </td>
+                        <td><span class="badge bg-primary">{{ course.files.count }}</span></td>
+                        <td>
+                            {% if course.is_active %}
+                            <span class="badge bg-success">نشط</span>
+                            {% else %}
+                            <span class="badge bg-secondary">غير نشط</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'courses:admin_course_edit' course.pk %}" class="btn btn-outline-primary" title="تعديل">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'courses:admin_course_detail' course.pk %}" class="btn btn-outline-info" title="عرض">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{% url 'courses:admin_assign_instructor' course.pk %}" class="btn btn-outline-success" title="تعيين مدرس">
+                                    <i class="bi bi-person-plus"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">لا توجد مقررات</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    {% if courses.has_other_pages %}
+    <div class="card-footer">
+        <nav>
+            <ul class="pagination justify-content-center mb-0">
+                {% if courses.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ courses.previous_page_number }}">السابق</a>
+                </li>
+                {% endif %}
+                
+                {% for num in courses.paginator.page_range %}
+                <li class="page-item {% if courses.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                
+                {% if courses.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ courses.next_page_number }}">التالي</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إدارة الفصول الدراسية - S-ACM{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-calendar3 me-2"></i>إدارة الفصول الدراسية</h2>
+    <a href="{% url 'accounts:admin_semester_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>إضافة فصل
+    </a>
+</div>
+
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>اسم الفصل</th>
+                        <th>تاريخ البداية</th>
+                        <th>تاريخ النهاية</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for semester in semesters %}
+                    <tr class="{% if semester.is_current %}table-success{% endif %}">
+                        <td>
+                            {{ semester.semester_name }}
+                            {% if semester.is_current %}
+                            <span class="badge bg-success ms-2">الحالي</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ semester.start_date|date:"Y/m/d" }}</td>
+                        <td>{{ semester.end_date|date:"Y/m/d" }}</td>
+                        <td>
+                            {% if semester.is_current %}
+                            <span class="badge bg-success">نشط</span>
+                            {% else %}
+                            <span class="badge bg-secondary">منتهي</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'accounts:admin_semester_edit' semester.pk %}" class="btn btn-outline-primary" title="تعديل">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% if not semester.is_current %}
+                                <form method="post" action="{% url 'accounts:admin_semester_set_current' semester.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-success" title="تعيين كفصل حالي">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">لا توجد فصول دراسية</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

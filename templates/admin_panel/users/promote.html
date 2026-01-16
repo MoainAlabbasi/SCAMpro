@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ترقية الطلاب - S-ACM{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'accounts:admin_dashboard' %}">لوحة التحكم</a></li>
+        <li class="breadcrumb-item active">ترقية الطلاب</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-arrow-up-circle me-2"></i>ترقية الطلاب إلى المستوى التالي
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                
+                <div class="alert alert-warning">
+                    <h6><i class="bi bi-exclamation-triangle me-1"></i>تحذير هام:</h6>
+                    <p class="mb-0">هذه العملية ستقوم بترقية جميع الطلاب في المستوى المحدد إلى المستوى التالي. تأكد من اختيارك قبل المتابعة.</p>
+                </div>
+                
+                <!-- Current Stats -->
+                <div class="card bg-light mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-bar-chart me-1"></i>إحصائيات الطلاب حسب المستوى
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>المستوى</th>
+                                        <th>عدد الطلاب</th>
+                                        <th>المستوى التالي</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for level in levels %}
+                                    <tr>
+                                        <td>{{ level.level_name }}</td>
+                                        <td><span class="badge bg-primary">{{ level.student_count }}</span></td>
+                                        <td>
+                                            {% if level.next_level %}
+                                            {{ level.next_level.level_name }}
+                                            {% else %}
+                                            <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="from_level" class="form-label">ترقية الطلاب من المستوى</label>
+                        <select name="from_level" id="from_level" class="form-select" required>
+                            <option value="">اختر المستوى...</option>
+                            {% for level in levels %}
+                            {% if level.next_level %}
+                            <option value="{{ level.pk }}">{{ level.level_name }} ({{ level.student_count }} طالب)</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">إلى المستوى</label>
+                        <input type="text" class="form-control" id="to_level_display" readonly disabled placeholder="سيتم تحديده تلقائياً">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="confirm" id="confirm" class="form-check-input" required>
+                            <label class="form-check-label" for="confirm">
+                                أؤكد أنني أريد ترقية جميع الطلاب في المستوى المحدد
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success flex-fill">
+                            <i class="bi bi-arrow-up-circle me-1"></i>تنفيذ الترقية
+                        </button>
+                        <a href="{% url 'accounts:admin_dashboard' %}" class="btn btn-outline-secondary">
+                            إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const levelData = {
+    {% for level in levels %}
+    {% if level.next_level %}
+    '{{ level.pk }}': '{{ level.next_level.level_name }}',
+    {% endif %}
+    {% endfor %}
+};
+
+document.getElementById('from_level').addEventListener('change', function() {
+    const toLevel = levelData[this.value] || '';
+    document.getElementById('to_level_display').value = toLevel;
+});
+</script>
+{% endblock %}

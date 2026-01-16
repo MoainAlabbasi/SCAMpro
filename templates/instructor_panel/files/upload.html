@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}رفع ملف جديد - S-ACM{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'courses:instructor_dashboard' %}">لوحة التحكم</a></li>
+        <li class="breadcrumb-item active">رفع ملف جديد</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-upload me-2"></i>رفع ملف جديد
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Content Type Selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">نوع المحتوى</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="content_type" id="type_file" value="local_file" checked>
+                            <label class="btn btn-outline-primary" for="type_file">
+                                <i class="bi bi-file-earmark-arrow-up me-1"></i>رفع ملف
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="content_type" id="type_link" value="external_link">
+                            <label class="btn btn-outline-primary" for="type_link">
+                                <i class="bi bi-link-45deg me-1"></i>رابط خارجي
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Course Selection -->
+                    <div class="mb-3">
+                        <label for="id_course" class="form-label">المقرر</label>
+                        {{ form.course }}
+                        {% if form.course.errors %}
+                        <div class="invalid-feedback d-block">{{ form.course.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Title -->
+                    <div class="mb-3">
+                        <label for="id_title" class="form-label">عنوان الملف</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                        <div class="invalid-feedback d-block">{{ form.title.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- File Type -->
+                    <div class="mb-3">
+                        <label for="id_file_type" class="form-label">تصنيف الملف</label>
+                        {{ form.file_type }}
+                        {% if form.file_type.errors %}
+                        <div class="invalid-feedback d-block">{{ form.file_type.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- File Upload (shown when local_file is selected) -->
+                    <div class="mb-3" id="file_upload_section">
+                        <label for="id_local_file" class="form-label">الملف</label>
+                        {{ form.local_file }}
+                        <small class="text-muted d-block mt-1">
+                            الأنواع المدعومة: PDF, DOC, DOCX, PPT, PPTX, TXT, MP4, WEBM
+                            <br>الحد الأقصى: 50 ميجابايت
+                        </small>
+                        {% if form.local_file.errors %}
+                        <div class="invalid-feedback d-block">{{ form.local_file.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- External Link (hidden by default) -->
+                    <div class="mb-3 d-none" id="external_link_section">
+                        <label for="id_external_link" class="form-label">الرابط الخارجي</label>
+                        {{ form.external_link }}
+                        <small class="text-muted d-block mt-1">
+                            أدخل رابط YouTube أو Google Drive أو أي رابط آخر
+                        </small>
+                        {% if form.external_link.errors %}
+                        <div class="invalid-feedback d-block">{{ form.external_link.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label">الوصف (اختياري)</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Visibility -->
+                    <div class="mb-4">
+                        <div class="form-check">
+                            {{ form.is_visible }}
+                            <label class="form-check-label" for="id_is_visible">
+                                إظهار الملف للطلاب فوراً
+                            </label>
+                        </div>
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="bi bi-upload me-1"></i>رفع الملف
+                        </button>
+                        <a href="{% url 'courses:instructor_dashboard' %}" class="btn btn-outline-secondary">
+                            إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const typeFile = document.getElementById('type_file');
+    const typeLink = document.getElementById('type_link');
+    const fileSection = document.getElementById('file_upload_section');
+    const linkSection = document.getElementById('external_link_section');
+    
+    function toggleSections() {
+        if (typeFile.checked) {
+            fileSection.classList.remove('d-none');
+            linkSection.classList.add('d-none');
+        } else {
+            fileSection.classList.add('d-none');
+            linkSection.classList.remove('d-none');
+        }
+    }
+    
+    typeFile.addEventListener('change', toggleSections);
+    typeLink.addEventListener('change', toggleSections);
+    
+    // Initial state
+    toggleSections();
+});
+</script>
+{% endblock %}

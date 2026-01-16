@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إضافة مقرر - S-ACM{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'accounts:admin_dashboard' %}">لوحة التحكم</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'courses:admin_course_list' %}">المقررات</a></li>
+        <li class="breadcrumb-item active">إضافة مقرر</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-book me-2"></i>إضافة مقرر جديد
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+                {% endif %}
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="id_course_code" class="form-label">رمز المقرر *</label>
+                            {{ form.course_code }}
+                            {% if form.course_code.errors %}
+                            <div class="invalid-feedback d-block">{{ form.course_code.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            <label for="id_course_name" class="form-label">اسم المقرر *</label>
+                            {{ form.course_name }}
+                            {% if form.course_name.errors %}
+                            <div class="invalid-feedback d-block">{{ form.course_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_level" class="form-label">المستوى *</label>
+                        {{ form.level }}
+                        {% if form.level.errors %}
+                        <div class="invalid-feedback d-block">{{ form.level.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_majors" class="form-label">التخصصات *</label>
+                        {{ form.majors }}
+                        <small class="text-muted d-block mt-1">اختر التخصصات التي يُدرّس فيها هذا المقرر (يمكن اختيار أكثر من تخصص)</small>
+                        {% if form.majors.errors %}
+                        <div class="invalid-feedback d-block">{{ form.majors.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_description" class="form-label">الوصف</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="id_is_active">
+                                تفعيل المقرر
+                            </label>
+                        </div>
+                    </div>
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="bi bi-plus-lg me-1"></i>إضافة المقرر
+                        </button>
+                        <a href="{% url 'courses:admin_course_list' %}" class="btn btn-outline-secondary">
+                            إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

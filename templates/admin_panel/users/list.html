@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إدارة المستخدمين - S-ACM{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-people me-2"></i>إدارة المستخدمين</h2>
+    <div class="btn-group">
+        <a href="{% url 'accounts:admin_user_create' %}" class="btn btn-primary">
+            <i class="bi bi-person-plus me-1"></i>إضافة مستخدم
+        </a>
+        <a href="{% url 'accounts:admin_user_import' %}" class="btn btn-outline-primary">
+            <i class="bi bi-upload me-1"></i>استيراد CSV
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">البحث</label>
+                <input type="text" name="q" class="form-control" placeholder="الاسم أو الرقم الأكاديمي" value="{{ request.GET.q }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">الدور</label>
+                <select name="role" class="form-select">
+                    <option value="">الكل</option>
+                    {% for role in roles %}
+                    <option value="{{ role.pk }}" {% if request.GET.role == role.pk|stringformat:"s" %}selected{% endif %}>{{ role.role_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">التخصص</label>
+                <select name="major" class="form-select">
+                    <option value="">الكل</option>
+                    {% for major in majors %}
+                    <option value="{{ major.pk }}" {% if request.GET.major == major.pk|stringformat:"s" %}selected{% endif %}>{{ major.major_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">الحالة</label>
+                <select name="status" class="form-select">
+                    <option value="">الكل</option>
+                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>نشط</option>
+                    <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>غير مفعّل</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="bi bi-search me-1"></i>بحث
+                </button>
+                <a href="{% url 'accounts:admin_user_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>الرقم الأكاديمي</th>
+                        <th>الاسم</th>
+                        <th>الدور</th>
+                        <th>التخصص</th>
+                        <th>المستوى</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td><code>{{ user.academic_id }}</code></td>
+                        <td>{{ user.full_name|default:"-" }}</td>
+                        <td>
+                            <span class="badge {% if user.role.role_name == 'admin' %}bg-danger{% elif user.role.role_name == 'instructor' %}bg-info{% else %}bg-success{% endif %}">
+                                {{ user.role.role_name|default:"-" }}
+                            </span>
+                        </td>
+                        <td>{{ user.major.major_name|default:"-" }}</td>
+                        <td>{{ user.level.level_name|default:"-" }}</td>
+                        <td>
+                            {% if user.account_status == 'active' %}
+                            <span class="badge bg-success">نشط</span>
+                            {% else %}
+                            <span class="badge bg-secondary">غير مفعّل</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'accounts:admin_user_edit' user.pk %}" class="btn btn-outline-primary" title="تعديل">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'accounts:admin_user_detail' user.pk %}" class="btn btn-outline-info" title="عرض">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if user.account_status == 'inactive' %}
+                                <button type="button" class="btn btn-outline-danger" title="حذف" data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.pk }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">لا يوجد مستخدمين</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    {% if users.has_other_pages %}
+    <div class="card-footer">
+        <nav>
+            <ul class="pagination justify-content-center mb-0">
+                {% if users.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ users.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">السابق</a>
+                </li>
+                {% endif %}
+                
+                {% for num in users.paginator.page_range %}
+                <li class="page-item {% if users.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                
+                {% if users.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ users.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">التالي</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

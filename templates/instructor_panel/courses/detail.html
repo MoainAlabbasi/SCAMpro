@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ course.course_name }} - S-ACM{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'courses:instructor_dashboard' %}">لوحة التحكم</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'courses:instructor_course_list' %}">مقرراتي</a></li>
+        <li class="breadcrumb-item active">{{ course.course_code }}</li>
+    </ol>
+</nav>
+
+<!-- Course Header -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <span class="badge bg-primary mb-2">{{ course.course_code }}</span>
+                <h2 class="mb-2">{{ course.course_name }}</h2>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-layers me-1"></i>{{ course.level.level_name }} •
+                    <i class="bi bi-file-earmark me-1"></i>{{ files|length }} ملف
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="{% url 'courses:file_upload' %}?course={{ course.pk }}" class="btn btn-success">
+                    <i class="bi bi-upload me-1"></i>رفع ملف جديد
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Files Section -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-folder me-2"></i>ملفات المقرر</span>
+    </div>
+    <div class="card-body p-0">
+        {% for file in files %}
+        <div class="file-item">
+            <div class="file-icon {% if file.local_file %}{% if '.pdf' in file.local_file.name %}pdf{% elif '.doc' in file.local_file.name %}doc{% elif '.ppt' in file.local_file.name %}ppt{% else %}other{% endif %}{% else %}other{% endif %}">
+                {% if file.content_type == 'external_link' %}
+                <i class="bi bi-link-45deg"></i>
+                {% else %}
+                <i class="bi bi-file-earmark"></i>
+                {% endif %}
+            </div>
+            <div class="file-info flex-grow-1">
+                <div class="d-flex align-items-center">
+                    <span class="file-title">{{ file.title }}</span>
+                    {% if not file.is_visible %}
+                    <span class="badge bg-warning text-dark ms-2">مخفي</span>
+                    {% endif %}
+                </div>
+                <div class="file-meta">
+                    <span class="badge bg-light text-dark me-2">{{ file.get_file_type_display }}</span>
+                    <i class="bi bi-calendar me-1"></i>{{ file.upload_date|date:"Y/m/d" }}
+                    <span class="mx-1">•</span>
+                    <i class="bi bi-download me-1"></i>{{ file.download_count }} تحميل
+                </div>
+            </div>
+            <div class="file-actions">
+                <!-- Toggle Visibility -->
+                <button type="button" class="btn btn-outline-{% if file.is_visible %}warning{% else %}success{% endif %} btn-sm" onclick="toggleFileVisibility({{ file.pk }}, this)" title="{% if file.is_visible %}إخفاء{% else %}إظهار{% endif %}">
+                    <i class="bi bi-eye{% if not file.is_visible %}-slash{% endif %}"></i>
+                </button>
+                
+                <!-- Edit -->
+                <a href="{% url 'courses:file_edit' file.pk %}" class="btn btn-outline-primary btn-sm" title="تعديل">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                
+                <!-- Delete -->
+                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ file.pk }}" title="حذف">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Delete Modal -->
+        <div class="modal fade" id="deleteModal{{ file.pk }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">تأكيد الحذف</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>هل أنت متأكد من حذف الملف "<strong>{{ file.title }}</strong>"؟</p>
+                        <p class="text-danger small">هذا الإجراء لا يمكن التراجع عنه.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                        <form method="post" action="{% url 'courses:file_delete' file.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">حذف</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <i class="bi bi-folder-x display-1 text-muted"></i>
+            <h4 class="mt-3 text-muted">لا توجد ملفات</h4>
+            <p class="text-muted">ابدأ برفع ملفات لهذا المقرر</p>
+            <a href="{% url 'courses:file_upload' %}?course={{ course.pk }}" class="btn btn-primary">
+                <i class="bi bi-upload me-1"></i>رفع ملف
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% csrf_token %}
+{% endblock %}
